@@ -1,15 +1,29 @@
+export interface LoginData {
+  user: User;
+  token: string;
+}
+
 export interface User {
-  id: number;
+  id: number | null;
   name: string;
   email: string;
   password: string; 
   phone: string | null;
-  birthday: string;
+  birthday: string | null; // Định dạng ISO Date string
   avatar: string | null;
-  gender: boolean; // true: Nam, false: Nữ (tùy API quy định)
+  gender: boolean | null; // true: Nam, false: Nữ (tùy API quy định)
   role: "ADMIN" | "USER"; 
 }
 
+export interface RegisterUser {
+  name: string;
+  email: string;
+  password: string; 
+  phone: string | null;
+  birthday: string | null; // Định dạng ISO Date string
+  gender: boolean | null; // true: Nam, false: Nữ (tùy API quy định)
+  role: "ADMIN" | "USER"; 
+}
 export interface Room {
   id: number;
   tenPhong: string;
