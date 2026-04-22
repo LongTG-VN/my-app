@@ -17,6 +17,13 @@ const user: RegisterUser = {
   role: "USER",
 };
 
+// try {
+//   const newUser = await userService.deleteUser(54649);
+//   console.log("Xóa người dùng thành công:", newUser);
+// } catch (error) {
+//   console.error("Lỗi xóa người dùng:", error);
+// }
+
 
   // 2. In ra để kiểm tra cấu trúc
   

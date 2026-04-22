@@ -34,14 +34,17 @@ export const userService = {
     }
   },
   deleteUser: async (id: number): Promise<boolean> => {
-    try {
-      await axiosClient.delete(`/users/${id}`);
-      return true;
-    } catch (error) {
-      console.error("Lỗi xóa người dùng:", error);
-      throw error;
-    }
-  },
+  try {
+    // Sửa 'data' thành 'params' để khớp với (query) trong hình
+    await axiosClient.delete(`/users`, { 
+      params: { id } 
+    });
+    return true;
+  } catch (error) {
+    console.error("Lỗi xóa người dùng:", error);
+    throw error;
+  }
+},
   updateUser: async (id: number, userData: RegisterUser): Promise<boolean> => {
     try {
       const res = await axiosClient.put<RegisterUser, Response<User>>(`/users/${id}`, userData);
