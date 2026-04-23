@@ -1,6 +1,7 @@
 "use client";
 import { userService } from '@/app/_service/userService';
-import { User } from '@/app/_type/type';
+import { RegisterUser, User } from '@/app/_type/type';
+import Image from 'next/image';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   PencilSquareIcon,
@@ -12,23 +13,37 @@ import {
 
 const UserPage = () => {
   const [userList, setUserList] = useState<User[]>([]);
+  const [formAdding, setFormAdding] = useState<boolean>(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
-
+  const [searchTerm, setSearchTerm] = useState<string>("");
   // Dùng useMemo để tính toán lại mỗi khi userList hoặc trang thay đổi
-  const { currentUsers, totalPages, indexOfFirstUser, indexOfLastUser } = useMemo(() => {
+  const { currentUsers, totalPages, indexOfFirstUser, indexOfLastUser, filteredUsers } = useMemo(() => {
+    // BƯỚC 1: Lọc theo tên người dùng
+    const filtered = userList.filter(user =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // BƯỚC 2: Tính toán phân trang dựa trên danh sách đã lọc
     const last = currentPage * usersPerPage;
     const first = last - usersPerPage;
+
     return {
-      currentUsers: userList.slice(first, last),
-      totalPages: Math.ceil(userList.length / usersPerPage),
+      filteredUsers: filtered, // Danh sách sau khi search
+      currentUsers: filtered.slice(first, last), // Danh sách hiển thị trên trang hiện tại
+      totalPages: Math.ceil(filtered.length / usersPerPage),
       indexOfFirstUser: first,
       indexOfLastUser: last
     };
-  }, [userList, currentPage, usersPerPage]);
+  }, [userList, currentPage, usersPerPage, searchTerm]);
 
   const getUserList = async () => {
+
+
+
     setLoading(true);
     try {
       const res = await userService.getAllUser();
@@ -72,8 +87,8 @@ const UserPage = () => {
             key={i}
             onClick={() => setCurrentPage(i)}
             className={`w-10 h-10 rounded-lg text-sm font-bold transition ${currentPage === i
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                : 'text-gray-500 hover:bg-white border'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+              : 'text-gray-500 hover:bg-white border'
               }`}
           >
             {i}
@@ -92,6 +107,11 @@ const UserPage = () => {
     return pages;
   };
 
+
+
+
+
+
   useEffect(() => {
     getUserList();
   }, []);
@@ -99,9 +119,29 @@ const UserPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between items-center gap-4 px-2">
-        <h2 className="text-2xl font-bold text-gray-800">Quản lý người dùng</h2>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">
-          + Thêm người dùng
+
+
+        <div className="flex flex-1 max-w-md items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Tìm theo tên hoặc email..."
+            className="w-full outline-none bg-transparent text-sm text-gray-700"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset về trang 1 khi search
+            }}
+          />
+        </div>
+
+        <button
+          className="bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-700 transition shadow-md shadow-blue-100 font-bold text-sm"
+          onClick={() => setFormAdding(true)}
+        >
+          + Thêm mới
         </button>
       </div>
 
@@ -128,9 +168,22 @@ const UserPage = () => {
                     <td className="p-6 text-center text-xs font-mono text-gray-400">#{user.id}</td>
                     <td className="p-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-100">
-                          {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : <UserCircleIcon className="w-full h-full text-gray-300" />}
-                        </div>
+                        {/* Bọc Avatar trong một cái nhãn (label) để tận dụng cơ chế kích hoạt input */}
+                        <label className="relative w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-100 cursor-pointer group">
+                          {user.avatar && user.avatar.startsWith('http') ? (
+                            <Image
+                              src={user.avatar}
+                              alt={user.name}
+                              width={40} // Thêm width/height bắt buộc cho thẻ Image
+                              height={40}
+                              className="w-full h-full object-cover"
+                              unoptimized // Thử thêm thuộc tính này nếu ảnh vẫn không hiện
+                            />
+                          ) : (
+                            <UserCircleIcon className="w-full h-full text-gray-300" />
+                          )}
+                        </label>
+
                         <span className="font-bold text-gray-800 truncate">{user.name}</span>
                       </div>
                     </td>
@@ -145,7 +198,10 @@ const UserPage = () => {
                     </td>
                     <td className="p-6">
                       <div className="flex justify-center gap-3">
-                        <button className="text-blue-500 hover:text-blue-700 transition">
+                        <button
+                          onClick={() => setEditingUser(user)} // Truyền object user hiện tại vào state
+                          className="text-blue-500 hover:text-blue-700 transition"
+                        >
                           <PencilSquareIcon className="w-5 h-5" />
                         </button>
                         <button onClick={() => user.id && handleDelete(user.id)} className="text-red-400 hover:text-red-600 transition">
@@ -193,6 +249,205 @@ const UserPage = () => {
           )}
         </div>
       </div>
+
+      {/* Overlay và Form thêm người dùng */}
+      {formAdding && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Lớp nền mờ - click vào đây để đóng */}
+          <div
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setFormAdding(false)}
+          ></div>
+
+          {/* Nội dung Form */}
+          <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 overflow-hidden border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-extrabold text-gray-800">Tạo tài khoản mới</h3>
+              <button
+                onClick={() => setFormAdding(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition text-gray-400"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const data = Object.fromEntries(formData.entries());
+
+                // Xử lý dữ liệu để khớp với Interface RegisterUser
+                const newUser: RegisterUser = {
+                  name: data.name as string,
+                  email: data.email as string,
+                  password: data.password as string, // Thêm mới
+                  role: data.role as "ADMIN" | "USER",
+                  phone: data.phone as string || null,
+                  birthday: data.birthday as string || null, // Thêm mới
+                  gender: data.gender === "true" // Chuyển từ string "true"/"false" sang boolean
+                };
+
+                try {
+                  setLoading(true);
+                  await userService.addUser(newUser);
+                  setFormAdding(false);
+                  getUserList();
+                } catch (error) {
+                  console.error("Lỗi thêm:", error);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              {/* --- Hàng 1: Tên --- */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Họ và tên</label>
+                <input name="name" required type="text" className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all" placeholder="Nguyễn Văn A" />
+              </div>
+
+              {/* --- Hàng 2: Email & Mật khẩu --- */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Email</label>
+                  <input name="email" required type="email" className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all" placeholder="name@mail.com" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Mật khẩu</label>
+                  <input name="password" required type="password" className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all" placeholder="••••••••" />
+                </div>
+              </div>
+
+              {/* --- Hàng 3: Ngày sinh & Giới tính --- */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Ngày sinh</label>
+                  <input name="birthday" type="date" className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Giới tính</label>
+                  <select name="gender" className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all appearance-none font-bold text-gray-700">
+                    <option value="true">Nam</option>
+                    <option value="false">Nữ</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* --- Hàng 4: Điện thoại & Vai trò --- */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Điện thoại</label>
+                  <input name="phone" type="text" className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all" placeholder="09..." />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Vai trò</label>
+                  <select name="role" className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all appearance-none font-bold text-gray-700">
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* --- Buttons --- */}
+              <div className="pt-6 flex gap-3">
+                <button type="button" onClick={() => setFormAdding(false)} className="flex-1 py-4 rounded-2xl font-bold text-gray-500 hover:bg-gray-100 transition-colors">Hủy bỏ</button>
+                <button type="submit" className="flex-1 py-4 rounded-2xl font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95">Lưu dữ liệu</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setEditingUser(null)}></div>
+          <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 border border-gray-100">
+            <h3 className="text-xl font-extrabold text-gray-800 mb-6">Chỉnh sửa nhân viên</h3>
+
+            <form
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!editingUser || editingUser.id == null) return;
+                const formData = new FormData(e.currentTarget);
+                const data = Object.fromEntries(formData.entries());
+
+                const updatedUser = {
+                  ...data,
+                  gender: data.gender === "true",
+                  // Giữ lại ID để biết sửa ai
+                };
+                const userId = editingUser.id;
+
+                try {
+                  setLoading(true);
+                  await userService.updateUser(userId, updatedUser as RegisterUser);
+                  setEditingUser(null);
+                  getUserList();
+                } catch (error) {
+                  console.error("Lỗi cập nhật:", error);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              {/* Họ tên */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Họ và tên</label>
+                <input
+                  name="name"
+                  required
+                  defaultValue={editingUser.name} // Đổ dữ liệu cũ vào đây
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                />
+              </div>
+
+              {/* Email & Role */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Email</label>
+                  <input name="email" required defaultValue={editingUser.email} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Vai trò</label>
+                  <select name="role" defaultValue={editingUser.role} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 outline-none font-bold">
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Giới tính & Ngày sinh */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Giới tính</label>
+                  <select name="gender" defaultValue={String(editingUser.gender)} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 outline-none">
+                    <option value="true">Nam</option>
+                    <option value="false">Nữ</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Ngày sinh</label>
+                  <input name="birthday" type="date" defaultValue={editingUser.birthday?.split('T')[0]} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 outline-none" />
+                </div>
+              </div>
+
+              {/* Điện thoại */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 ml-1">Số điện thoại</label>
+                <input name="phone" defaultValue={editingUser.phone || ''} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 outline-none" />
+              </div>
+
+              <div className="pt-6 flex gap-3">
+                <button type="button" onClick={() => setEditingUser(null)} className="flex-1 py-4 rounded-2xl font-bold text-gray-500 hover:bg-gray-100 transition-colors">Hủy</button>
+                <button type="submit" className="flex-1 py-4 rounded-2xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-95">Cập nhật</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

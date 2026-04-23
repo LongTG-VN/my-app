@@ -2,13 +2,13 @@ import axiosClient from "./axiosClient";
 import { User, Response, LoginData, RegisterUser } from "../_type/type";
 
 export const userService = {
-  signIn: async (email: string, password: string): Promise<User> => {
+  signIn: async (email: string, password: string): Promise<LoginData> => {
     // THÊM await ở đây để đợi dữ liệu về
     const res = await axiosClient.post<any, Response<LoginData>>("/auth/signin", {
       email,
       password,
     });
-    return res.content.user;
+    return res.content;
   },
 
   signUp: async (userData: RegisterUser): Promise<User> => {
@@ -27,6 +27,7 @@ export const userService = {
   addUser: async (userData: RegisterUser): Promise<boolean> => {
     try {
       const res = await axiosClient.post<RegisterUser, Response<User>>("/users", userData);
+      console.log("Thêm người dùng thành công:", res.content);
       return true;
     } catch (error) {
       console.error("Lỗi thêm người dùng:", error);
@@ -63,20 +64,20 @@ export const userService = {
       throw error;
     }
   },
-  uploadAvatar: async (id: number, file: File): Promise<boolean> => {
-    try {
-      const formData = new FormData();
-      formData.append("formFile", file);
+  uploadAvatar: async (file: File): Promise<any> => {
+  try {
+    const formData = new FormData();
+    // 1. Phải đúng tên key là "formFile" như trong hình API bạn gửi
+    formData.append("formFile", file);
 
-      const res = await axiosClient.post<FormData, Response<any>>(`/users/${id}/avatar`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return true;
-    } catch (error) {
-      console.error("Lỗi tải lên avatar:", error);
-      throw error;
-    }
+    // 2. KHÔNG truyền headers thủ công ở đây nữa
+    // axiosClient đã có interceptor tự thêm token và tokenCybersoft rồi
+    const res = await axiosClient.post(`/users/upload-avatar`, formData);
+    
+    return res;
+  } catch (error) {
+    console.error("Lỗi tải lên avatar:", error);
+    throw error;
   }
+}
 };
