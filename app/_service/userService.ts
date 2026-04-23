@@ -1,5 +1,6 @@
 import axiosClient from "./axiosClient";
 import { User, Response, LoginData, RegisterUser } from "../_type/type";
+import { promises } from "dns";
 
 export const userService = {
   signIn: async (email: string, password: string): Promise<LoginData> => {
@@ -20,6 +21,7 @@ export const userService = {
       throw error;
     }
   },
+  // Phế 
   getAllUser: async (): Promise<User[]> => {
     const res = await axiosClient.get<any, Response<User[]>>("/users");
     return res.content;
@@ -45,7 +47,8 @@ export const userService = {
     console.error("Lỗi xóa người dùng:", error);
     throw error;
   }
-},
+}, 
+   
   updateUser: async (id: number, userData: RegisterUser): Promise<boolean> => {
     try {
       const res = await axiosClient.put<RegisterUser, Response<User>>(`/users/${id}`, userData);
@@ -55,9 +58,10 @@ export const userService = {
       throw error;
     }
   },
-  searchUser: async (keyword: string): Promise<User[]> => {
+  // Phế 
+  searchUser: async (name: string): Promise<User[]> => {
     try {
-      const res = await axiosClient.get<any, Response<User[]>>(`/users/search?keyword=${encodeURIComponent(keyword)}`);
+      const res = await axiosClient.get<any, Response<User[]>>(`/users/search/${name}`);
       return res.content;
     } catch (error) {
       console.error("Lỗi tìm kiếm người dùng:", error);
@@ -79,5 +83,22 @@ export const userService = {
     console.error("Lỗi tải lên avatar:", error);
     throw error;
   }
-}
+},
+  Pagination: async (currentPage: number , name: String): Promise<User[]> => {
+    const object = {
+      pageIndex: 1,
+      pageSize: 100000,
+      keyword: name || "",
+     }
+     try { 
+       const res = await axiosClient.get<any, Response<any>>(`/users/phan-trang-tim-kiem`, { params: object });
+       return res.content.data;
+     } catch (error) {
+      console.error("Lỗi phân trang và tìm kiếm người dùng:", error);
+      throw error;
+     }  
+  }
+
+  
+
 };

@@ -18,6 +18,15 @@ const user: RegisterUser = {
 };
 
 // try {
+//  const users: User[] =  await userService.Pagination(1, "");
+//  console.log(users);
+
+// } catch (error) {
+//   console.log(error);
+  
+// }
+
+// try {
 //   const newUser = await userService.deleteUser(54649);
 //   console.log("Xóa người dùng thành công:", newUser);
 // } catch (error) {
