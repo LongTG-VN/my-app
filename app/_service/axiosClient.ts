@@ -5,7 +5,8 @@ const axiosClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
     // Token dự án của trung tâm (Token này luôn phải có)
-    'tokenCybersoft': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW5Mb3AiOiJCb290Y2FtcCA5MSIsIkhldEhhblN0cmluZyI6IjAyLzA5LzIwMjYiLCJIZXRIYW5UaW1lIjoiMTc4ODMwNzIwMDAwMCIsIm5iZiI6MTc1OTk0MjgwMCwiZXhwIjoxNzg4NDU0ODAwfQ.3f2gLYDZla_lDH4GWmfgSe9Il_QHrpoHIWhW6FSKTi8`
+    'tokenCybersoft': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW5Mb3AiOiJCb290Y2FtcCA5MSIsIkhldEhhblN0cmluZyI6IjAyLzA5LzIwMjYiLCJIZXRIYW5UaW1lIjoiMTc4ODMwNzIwMDAwMCIsIm5iZiI6MTc1OTk0MjgwMCwiZXhwIjoxNzg4NDU0ODAwfQ.3f2gLYDZla_lDH4GWmfgSe9Il_QHrpoHIWhW6FSKTi8`,
+  'token': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MTIyIiwiZW1haWwiOiJhZG1pbjFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwibmJmIjoxNzc2OTA1OTYwLCJleHAiOjE3Nzc1MTA3NjB9.HapHawJQL4I1mWgtFd1PZemgPOdOT7vC6AB9N6j5pjo"
   },
 });
 
@@ -20,9 +21,15 @@ axiosClient.interceptors.request.use(
       if (token) {
         // Gắn token vào header. 
         // Lưu ý: API Cybersoft thường yêu cầu key là 'token' (viết thường)
+    // console.log(token, "Token");
+    
         config.headers.token = token; 
+      } else {
+        // console.log("ko có token");
+        
       }
     }
+    console.log("🚀 Lệnh chuẩn bị gửi đi có Headers là:", config.headers);
     return config;
   },
   (error) => {

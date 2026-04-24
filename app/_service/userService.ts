@@ -1,6 +1,5 @@
 import axiosClient from "./axiosClient";
 import { User, Response, LoginData, RegisterUser } from "../_type/type";
-import { promises } from "dns";
 
 export const userService = {
   signIn: async (email: string, password: string): Promise<LoginData> => {

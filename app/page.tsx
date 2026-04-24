@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { userService } from "./_service/userService";
-import { Response, LoginData , User , RegisterUser } from "./_type/type";
+import { Response, LoginData , User , RegisterUser, Location } from "./_type/type";
 import { log } from "console";
+import { locationService } from "./_service/locationService";
 
 export default async function Home() {
   // 1. Gọi hàm signIn và đợi dữ liệu về
@@ -16,26 +17,27 @@ const user: RegisterUser = {
   gender: true,
   role: "USER",
 };
+const location: Location = {
+  "id": 1000,
+  "tenViTri": "CD",
+  "tinhThanh": "VC",
+  "quocGia": "A",
+  "hinhAnh": "AC"
+}
 
-// try {
-//  const users: User[] =  await userService.Pagination(1, "");
-//  console.log(users);
+// tạo input từ file
 
-// } catch (error) {
-//   console.log(error);
+
+try {
+//  const a = await locationService.uploadImage(19384, "");
+//  console.log(a);
+ 
+} catch (error) {
+  console.log(error);
   
-// }
-
-// try {
-//   const newUser = await userService.deleteUser(54649);
-//   console.log("Xóa người dùng thành công:", newUser);
-// } catch (error) {
-//   console.error("Lỗi xóa người dùng:", error);
-// }
+}
 
 
-  // 2. In ra để kiểm tra cấu trúc
-  
   return (
     
 <h1>Trang Chủ</h1>
