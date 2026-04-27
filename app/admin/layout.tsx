@@ -2,32 +2,32 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation'; // Dùng để điều hướng
+import { useRouter, usePathname } from 'next/navigation';
 import { 
   UsersIcon, 
   MapPinIcon, 
   HomeModernIcon, 
   Bars3Icon, 
-  ChevronDownIcon,
   CalendarDaysIcon,
   ArrowLeftOnRectangleIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isChecking, setIsChecking] = useState(true); // Trạng thái kiểm tra quyền
+  const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // 1. Lấy thông tin user từ localStorage (giả sử bạn lưu lúc login)
-    const userJson = localStorage.getItem('USER_INFO'); // Hoặc 'USER_LOGIN' tùy tên bạn đặt
-    // Nếu mọi thứ ok thì cho phép hiển thị nội dung
+    const userJson = localStorage.getItem('USER_INFO');
     setIsChecking(false);
   }, [router]);
 
-  // Nếu đang kiểm tra quyền, trả về màn hình trống hoặc loading để tránh bị "flash" giao diện admin
-  
+  const handleLogout = () => {
+    localStorage.removeItem("USER_INFO");
+    localStorage.removeItem("USER_TOKEN");
+    router.push("/auth/login");
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans">
@@ -58,13 +58,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </nav>
 
         <div className="p-4 border-t border-gray-50">
-          {/* <button 
+          <button 
             onClick={handleLogout}
             className="flex items-center gap-4 w-full p-3 rounded-xl text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-all group"
           >
             <ArrowLeftOnRectangleIcon className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
             <span className={`${!isSidebarOpen && 'hidden'} font-bold text-sm`}>Đăng xuất</span>
-          </button> */}
+          </button>
         </div>
       </aside>
 
@@ -93,7 +93,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Component con cho Nav Item để code sạch hơn
 const NavItem = ({ href, icon, label, isOpen, active }: any) => (
   <Link 
     href={href} 
