@@ -80,16 +80,18 @@ export const locationService = {
     }
   },
 
-  uploadImage:async (id: number , file: File): Promise<any> => {
-    try {
-      const formdata = new FormData();
-      formdata.append(`formFile`, file);
-      const res = await axiosClient.post<any, Response<any>>(`//vi-tri/upload-hinh-vitri`, formdata);
-      console.log("Thành công");
-      return res.content
-    } catch (error) {
-      throw error
-    }
+uploadLocationImage: (id: number | string, file: File) => {
+    const formData = new FormData();
+    // QUAN TRỌNG: Key phải là 'formFile' theo đúng Swagger
+    formData.append('formFile', file);
 
+    return axiosClient.post(`/vi-tri/upload-hinh-vitri`, formData, {
+      params: {
+        maViTri: id 
+      },
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
   }
 };
